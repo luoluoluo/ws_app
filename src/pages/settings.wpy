@@ -1,0 +1,80 @@
+<template>
+  <view class="container">
+    <view class="zan-panel">
+      <navigator class="zan-cell zan-cell--access user-info-cell" url="./profile">
+        <view class="zan-cell__icon avatar-container">
+          <image class="avatar" src="{{userInfo.avatar}}"></image>
+        </view>        
+        <view class="zan-cell__bd">
+          <view class="nickname">{{userInfo.name}}</view>
+        </view>
+        <view class="zan-cell__ft"></view>
+      </navigator>
+    </view>
+
+    <view class="zan-panel">
+      <navigator class="zan-cell zan-cell--access" url="./about">
+        <icon class="zan-cell__icon iconfont icon-about1"></icon>        
+        <view class="zan-cell__bd">关于我们</view>
+        <view class="zan-cell__ft"></view>
+      </navigator>
+    </view>
+  </view>
+</template>
+
+<style lang="less" scoped>
+.icon-language{
+  color: #09f;
+}
+.icon-feedback2{
+  color: #0c9;
+}
+.icon-about1{
+  color: #fc3;
+}
+.user-info-cell{
+  height: 70px;
+  .avatar-container{
+    display: flex;
+    align-items: center;
+    .avatar{
+      width: 50px;
+      height: 50px;
+      border-radius: 4px;
+    }
+  }
+  .location {
+    margin-top: 5px;
+    font-size: 13px;
+    color: #858585;
+  }
+}
+</style>
+
+
+<script>
+import wepy from 'wepy'
+
+export default class Settings extends wepy.page {
+  config = {
+    navigationBarTitleText: '设置'
+  }
+
+  data = {
+    userInfo: {
+      name: 'loading...'
+    }
+  }
+
+  methods = {}
+
+  events = {}
+
+  onLoad() {
+    this.$parent.getUserInfo().then(user => {
+      this.userInfo = user
+      this.$apply()
+    })
+  }
+}
+</script>

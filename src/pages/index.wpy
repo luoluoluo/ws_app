@@ -1,0 +1,209 @@
+<template>
+  <view class="container">
+    <view class="header">
+      <view class="user">
+        <image class="avatar" src="{{userInfo.avatar}}" />
+        <view class="name">{{userInfo.name}}</view>
+      </view>
+      <view class="filter" @tap.stop="changeMode()">
+        <view class="text">{{modes[mode]}}</view>
+        <view class="icon"></view>
+      </view>
+    </view>
+    <repeat for="{{timeline}}" key="index" index="index" item="item">
+      <view>
+        <card :post.sync="item"></card>      
+      </view>
+    </repeat>
+    <navigator url="./publish" class="publisher-btn">
+      <image src="../assets/images/feather.png"/>
+    </navigator>
+  </view>
+</template>
+
+<style lang="less" scoped>
+.header {
+  height: 35px;
+  line-height: 35px;
+  .user{
+    float: left;
+    padding: 5px; 
+    .avatar {
+      float: left;
+      width: 25px;
+      height: 25px;
+      border-radius: 25px;
+    }
+    .name {
+      margin-left: 5px;
+      float: left;
+      font-size: 14px;
+      height: 24px;
+      color: #333;
+    }
+  }
+  .filter {
+    float: right;
+    padding: 5px;
+    .text {
+      float: left;
+      font-size: 14px;
+      line-height: 35px;
+      color: #333;
+    }
+    .icon {
+      float: left;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 10px solid #666;
+      margin: 10px 0 0 5px;
+    }
+  }
+}
+.publisher-btn {
+  width: 60px;
+  height: 60px;
+  background-color: #ff9630;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: -1px 2px 9px 0px rgba(176, 176, 176, 1);
+
+  > image {
+    width: 23px;
+    height: 23px;
+  }
+}
+</style>
+
+<script>
+import wepy from 'wepy'
+import req from '@/network'
+import Card from '@/components/card'
+import { connect } from 'wepy-redux'
+import { initTimeline, prependTimeline, appendTimeline } from '@/store/actions'
+import { formatTimeline } from '@/utils'
+
+@connect(
+  {
+    timeline(state) {
+      return state.home.timeline
+    }
+  },
+  {
+    initTimeline,
+    prependTimeline,
+    appendTimeline
+  }
+)
+export default class Index extends wepy.page {
+  config = {
+    enablePullDownRefresh: true
+  }
+  data = {
+    userInfo: null,
+    mode: 0,
+    modes: ['全部的', '我发布的', '我评论的'],
+    typeName: '全部的'
+  }
+
+  refreshing = false
+  loadingMore = false
+  lastid = 0
+  hasMore = false
+
+  methods = {
+    changeMode() {
+      const $this = this
+      wx.showActionSheet({
+        itemList: this.modes,
+        success: function(res) {
+          console.log(this.types)
+          $this.mode = res.tapIndex
+          $this.$apply()
+          $this.getTimeline()
+        },
+        fail: function(res) {
+          console.log(res.errMsg)
+        }
+      })
+    }
+  }
+
+  events = {}
+
+  onLoad() {
+    this.$parent.getUserInfo().then(user => {
+      this.userInfo = user
+      this.$apply()
+      this.getTimeline()
+    })
+  }
+
+  getTimeline() {
+    wx.showToast({
+      title: 'loading...',
+      icon: 'loading'
+    })
+    req
+      .get('timeline', {mode: this.mode})
+      .then(res => {
+        const timeline = formatTimeline(res.data)
+        this.hasMore = timeline.has_more
+        if (timeline.items.length > 0) {
+          this.lastid = timeline.items[timeline.items.length - 1].id
+        }
+        this.methods.initTimeline(timeline.items)
+      })
+      .then(res => wx.hideToast())
+  }
+
+  onPullDownRefresh() {
+    if (this.refreshing) return false
+
+    this.refreshing = true
+    req.get('timeline', {mode: this.mode}).then(res => {
+      const timeline = formatTimeline(res.data)
+      this.hasMore = timeline.has_more
+      if (timeline.items.length > 0) {
+        this.lastid = timeline.items[timeline.items.length - 1].id
+      }
+      this.methods.initTimeline(timeline.items)
+      this.refreshing = false
+      wx.stopPullDownRefresh()
+    })
+  }
+
+  onReachBottom() {
+    if (this.loadingMore || !this.hasMore) return false
+
+    this.loadingMore = true
+    wx.showToast({
+      title: 'loading...',
+      icon: 'loading'
+    })
+    req
+      .get('timeline', { last_id: this.lastid, mode: this.mode })
+      .then(res => {
+        const timeline = formatTimeline(res.data)
+        this.hasMore = timeline.has_more
+        if (timeline.items.length > 0) {
+          this.lastid = timeline.items[timeline.items.length - 1].id
+        }
+        this.methods.appendTimeline(timeline.items)
+        this.loadingMore = false
+      })
+      .then(res => wx.hideToast())
+  }
+
+  components = {
+    card: Card
+  }
+}
+</script>

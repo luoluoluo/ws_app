@@ -1,0 +1,51 @@
+<template>
+  <view class="container">
+    <editor :placeholder="评论" :content="text" @submitForm.user="submitForm"></editor>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Editor from '@/components/editor'
+import req from '@/network'
+export default class Comment extends wepy.page {
+  config = {
+    navigationBarTitleText: '评论'
+  }
+  data = {
+    text: '',
+    task_id: 0
+  }
+  methods = {
+    submitForm() {
+      req
+        .post('comment', {
+          text: this.text,
+          task_id: this.task_id
+        })
+        .then(
+          res => {
+            wx.reLaunch({
+              url: 'index'
+            })
+          },
+          res => {
+            wx.showToast({
+              title: res.status_text ? res.status_text : '评论失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        )
+    }
+  }
+  events = {}
+  onLoad(params) {
+    this.task_id = parseInt(params.id)
+    console.log(params)
+  }
+  components = {
+    editor: Editor
+  }
+}
+</script>

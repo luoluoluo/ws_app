@@ -1,0 +1,52 @@
+<template>
+  <view class="container">
+    <editor :placeholder="发布任务" :content="text" @submitForm.user="submitForm"></editor>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Editor from '@/components/editor'
+import req from '@/network'
+
+export default class Publisher extends wepy.page {
+  config = {
+    navigationBarTitleText: '发布'
+  }
+
+  data = {
+    text: ''
+  }
+
+  methods = {
+    submitForm() {
+      req
+        .post('task', {
+          text: this.text
+        })
+        .then(
+          res => {
+            wx.reLaunch({
+              url: 'index'
+            })
+          },
+          res => {
+            wx.showToast({
+              title: res.status_text ? res.status_text : '发布失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        )
+    }
+  }
+
+  events = {}
+
+  onLoad() {}
+
+  components = {
+    editor: Editor
+  }
+}
+</script>
