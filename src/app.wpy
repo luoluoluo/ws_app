@@ -106,7 +106,7 @@ export default class extends wepy.app {
           })
           .then(res => {
             wx.setStorageSync('token', res.data.token)
-            this.globalData.userInfo = this.data
+            this.globalData.userInfo = res.data
             return res.data
           })
       })
