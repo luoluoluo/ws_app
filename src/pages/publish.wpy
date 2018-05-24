@@ -20,6 +20,10 @@ export default class Publisher extends wepy.page {
 
   methods = {
     submitForm() {
+      wx.showToast({
+        title: 'loading...',
+        icon: 'loading'
+      })
       req
         .post('task', {
           text: this.text

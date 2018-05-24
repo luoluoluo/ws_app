@@ -18,6 +18,10 @@ export default class Comment extends wepy.page {
   }
   methods = {
     submitForm() {
+      wx.showToast({
+        title: 'loading...',
+        icon: 'loading'
+      })
       req
         .post('comment', {
           text: this.text,
