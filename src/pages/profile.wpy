@@ -4,7 +4,7 @@
       <view class="zan-cell avatar-cell">       
         <view class="zan-cell__bd">头像</view>
         <view class="zan-cell__ft avatar-container">
-          <image class="avatar" src="{{userInfo.avatar}}"></image>
+          <image class="avatar" src="{{userInfo.avatar}}"/>
         </view>
       </view>
       <view class="zan-cell">    
