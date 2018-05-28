@@ -43,7 +43,7 @@ import wepy from 'wepy'
 
 export default class Profile extends wepy.page {
   config = {
-    navigationBarTitleText: 'Profile'
+    navigationBarTitleText: '个人信息'
   }
 
   data = {
